@@ -1,10 +1,9 @@
 // all possible api routes go through here
 
 import express from "express";
-import "dotenv/config"; // to allow the file to read variables from the .env file
-import { authenticateToken, logIn, registration, logOut, refreshToken } from "../controllers/auth";
-import { getThreads, newThread, deleteThread } from "../controllers/threads";
-import { threadReplies, newReply, deleteReply } from "../controllers/replies";
+import { authenticateToken, logIn, registration, logOut, refreshToken } from "../controllers/auth.js";
+import { getThreads, newThread, deleteThread } from "../controllers/threads.js";
+import { threadReplies, newReply, deleteReply } from "../controllers/replies.js";
 
 const router = express.Router();
 

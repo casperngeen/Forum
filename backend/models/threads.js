@@ -1,6 +1,6 @@
 // handles SQL querying for threads
 
-import pool from "../../mvc/solution-code/models/database";
+import { pool } from "./db.js";
 
 export async function getThreadsQuery() {
     try {
@@ -56,6 +56,20 @@ export async function removeRepliesOfThread(threadID) {
             values: [threadID]
         };
         return await pool.query(removeRepliesOfThreadQuery);
+    } catch (error) {
+        console.error("Error executing SQL query: ", error);
+        throw error; //error is thrown to be caught in the promise above
+    }
+}
+
+export async function findThread(threadID) {
+    try {
+        const findThreadQuery = {
+            text: 
+            `SELECT * FROM threads WHERE id = $1`,
+            values: [threadID]
+        };
+        return await pool.query(findThreadQuery);
     } catch (error) {
         console.error("Error executing SQL query: ", error);
         throw error; //error is thrown to be caught in the promise above

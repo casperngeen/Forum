@@ -22,7 +22,7 @@ export default function Home() {
                 const allThreads = await getAllThreads(); //array of all threads
                 setThreads(allThreads);
             } catch (error) {
-                setError("There was an issue fetching the threads.")
+                setError((error as Error).message ||"There was an issue fetching the threads.")
             }
             
         };

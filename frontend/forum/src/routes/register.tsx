@@ -54,15 +54,14 @@ export default function Register() {
     const checkPassword = data.get('checkPassword') as string;
     if (password !== checkPassword) {
       setError({status: true, message: "Passwords do not match!"});
-    }
-
-    try {
-      await register({username: username, password: password});
-      setSuccess(true);
-    } catch (error) {
+    } else {
+      try {
+        await register({username: username, password: password});
+        setSuccess(true);
+      } catch (error) {
         setError({status: true, message: (error as Error).message || "There has been an error registering"});
       }
-
+    }
   };
 
   const handleClose = () => {
@@ -86,7 +85,7 @@ export default function Register() {
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
-            Sign up
+            Register
           </Typography>
           <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
             <Grid container spacing={2}>

@@ -38,8 +38,8 @@ export default function Login() {
     }
 
     const navigate = useNavigate();
-    const { setIsLoggedIn } = React.useContext(LoginContext);
-    const [ openAlert, setOpenAlert ] = React.useState<boolean>(false);
+    const { setOpenAlert, setIsLoggedIn } = React.useContext(LoginContext);
+    
     const [ error, setError ] = React.useState<ErrorType>({status: false, message: ""});
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -54,15 +54,12 @@ export default function Login() {
             const userData = await login({username: username, password: password});
             localStorage.setItem("user", JSON.stringify(userData));
             setIsLoggedIn(true);
+            setOpenAlert(true);
             navigate("/");
         } catch (error) {
             setError({status: true, message: (error as Error).message || "Login failed"});
         }
     };
-
-    const handleClose = () => {
-        setOpenAlert(false);
-    }
 
     const handleErrorClose = () => {
         setError({status: false, message: ""});
@@ -107,12 +104,7 @@ export default function Login() {
                         </Box>
                     </Box>
                 <Copyright sx={{ mt: 8, mb: 4 }} />
-                <Snackbar open={openAlert} autoHideDuration={5000} onClose={handleClose}>
-                    <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
-                        Login successful!
-                    </Alert>
-                </Snackbar>
-                <Snackbar open={error.status} autoHideDuration={5000} onClose={handleClose}>
+                <Snackbar open={error.status} autoHideDuration={5000}>
                     <Alert onClose={handleErrorClose} severity="error" sx={{ width: '100%' }}>
                         {error.message}
                     </Alert>

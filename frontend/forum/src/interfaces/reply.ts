@@ -3,6 +3,5 @@ export interface ReplyType {
     username: string,
     thread_id: number,
     created_at: Date,
-    parent_id?: number,
     content?: string,
 }

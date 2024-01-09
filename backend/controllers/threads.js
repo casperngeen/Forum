@@ -1,10 +1,10 @@
-import { getThreadsQuery, newThreadQuery, findThread, removeThreadQuery, removeRepliesOfThread } from "../models/threads";
-import CustomError from "../error";
+import { getThreadsQuery, newThreadQuery, findThread, removeThreadQuery, removeRepliesOfThread } from "../models/threads.js";
+import CustomError from "../error.js";
 
 export async function getThreads(req, res) {
     try {
         const result = await getThreadsQuery();
-        res.status(200).json(result.rows);
+        res.status(200).json(result);
     } catch (error) {
         if (error instanceof CustomError) {
             res.status(error.code).json({error: error.message});
@@ -38,12 +38,12 @@ export async function deleteThread(req, res) {
         
         //thread does not exist
         if (thread.rows.length === 0) {
-            throw CustomError(404, "Thread not found");
+            throw new CustomError(404, "Thread not found");
         }
 
         // thread does not belong to user accessing api route
         if (thread.rows[0].user_id !== userID) {
-            throw CustomError(403, "Forbidden access");
+            throw new CustomError(403, "Forbidden access");
         }
 
         await removeThreadQuery(threadID);

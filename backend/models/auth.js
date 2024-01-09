@@ -1,5 +1,5 @@
 // handles all the SQL querying, database management logic
-import pool from "../../mvc/solution-code/models/database";
+import { pool } from "./db.js";
 
 export async function insertUser(username, hash) {
     try {

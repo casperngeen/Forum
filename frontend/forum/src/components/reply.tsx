@@ -11,8 +11,8 @@ export default function Reply({ reply }: replyProp) {
 
   return (
     <Box display="flex" flexDirection="column" paddingY={3} columnGap={2}>  
-        <Typography variant="subtitle1">By ${username}, created at ${created_at.toString()}</Typography>
-        <Typography variant="body1">${content}</Typography>
+        <Typography variant="subtitle1">By {username}, created at {created_at.toString()}</Typography>
+        <Typography variant="body1">{content}</Typography>
     </Box>
 )
 }

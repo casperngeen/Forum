@@ -10,7 +10,7 @@ CREATE TABLE threads (
     title VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 CREATE TABLE replies (
@@ -18,17 +18,13 @@ CREATE TABLE replies (
     user_id INT NOT NULL,
     thread_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    parent_id INT NOT NULL,
     content TEXT,
     FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (thread_id) REFERENCES threads(id),
-    FOREIGN KEY (parent_id) REFERENCES replies(id)
+    FOREIGN KEY (thread_id) REFERENCES threads(id)
 );
 
-CREATE TABLE activeUsers {
+CREATE TABLE activeUsers (
     user_id INT NOT NULL,
     refresh_token_hash TEXT NOT NULL,
-    FOREIGN KEY user_id REFERENCES users(id)
-}
-
--- need to fix the primary keys, and reference/foreign keys
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);

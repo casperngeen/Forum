@@ -1,43 +1,32 @@
 // handles SQL querying for each individual thread
-import pool from "../../mvc/solution-code/models/database";
+import { pool } from "./db.js";
 
 export async function getAllReplies(threadID) {
     try {
         // use a recursive tree to call all replies and assign levels to them (level 1 means direct reply to thread, level 2 are the replies to level 1 replies, etc)
         const getRepliesQuery = {
             text: 
-            `WITH RECURSIVE ReplyTree AS (
-                SELECT replies.id, users.username, replies.parent_id, replies.content, replies.created_at, 1 AS level
-                FROM replies
-                JOIN users ON replies.user_id = users.id
-                WHERE thread_id = $1 AND parent_id IS NULL
-                
-                UNION ALL
-                
-                SELECT r.id, u.username, r.parent_id, r.content, r.created_at, rt.level + 1
-                FROM replies r
-                JOIN ReplyTree rt ON r.parent_id = rt.id
-                JOIN users u ON r.user_id = u.id
-            ) 
-            SELECT id, username, parent_id, content, created_at, level
-            FROM ReplyTree
-            ORDER BY level, created_at;`,
+            `SELECT replies.id, users.username, replies.content, replies.created_at
+                FROM replies JOIN users 
+                ON replies.user_id = users.id
+                WHERE thread_id = $1`,
             values: [threadID]
         }
-        return await pool.query(getRepliesQuery);
+        const { rows } = await pool.query(getRepliesQuery);
+        return rows;
     } catch(error) {
         console.error("Error querying SQL: ", error);
         throw error;
     }
 }
 
-export async function addNewReply(userID, threadID, parentID, content) {
+export async function addNewReply(userID, threadID, content) {
     try {
         const newReplyQuery = {
             text: 
-            `INSERT INTO replies(user_id, thread_id, parent_id, content) 
-                VALUES($1, $2, $3, $4)`,
-            values: [userID, threadID, parentID, content],
+            `INSERT INTO replies(user_id, thread_id, content) 
+                VALUES($1, $2, $3)`,
+            values: [userID, threadID, content],
         };
         return await pool.query(newReplyQuery);
     } catch (error) {

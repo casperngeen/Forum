@@ -2,17 +2,7 @@
 
 import { User } from "../interfaces/user";
 
-//      the second (optional) param INIT specifies properties of the request object
-export default async function fetchData(input: RequestInfo, init?: RequestInit) {
-    const response = await fetch(input, init);
-    if (response.ok) {
-        return response;
-    } else {
-        const errorBody = await response.json();
-        const errorMessage = errorBody.error;
-        throw Error(errorMessage);
-    }
-}
+const URL = "http://localhost:3000/"
 
 /*
 export async function getLoggedInUser(): Promise<User> {
@@ -28,18 +18,26 @@ interface Credentials {
 
 // to edit
 export async function register(credentials: Credentials) {
-    await fetchData("/api/register",
+    const response = await fetch(URL + "register",
         {
             method: "POST",
+            mode: "cors",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(credentials),
         });
+    if (response.ok) {
+        return response;
+    } else {
+        const errorBody = await response.json();
+        const errorMessage = errorBody.error;
+        throw Error(errorMessage);
+    }
 }
 
 export async function login(credentials: Credentials): Promise<User> {
-    const response = await fetchData("/api/login",
+    const response = await fetch(URL + "login",
         {
             method: "POST",
             mode: "cors",
@@ -49,20 +47,48 @@ export async function login(credentials: Credentials): Promise<User> {
             },
             body: JSON.stringify(credentials),
         });
-    return await response.json();
+    if (response.ok) {
+        try {
+            return await response.json();
+        } catch (error) {
+            console.log(error);
+            throw Error;
+        }
+    } else {
+        const errorBody = await response.json();
+        const errorMessage = errorBody.error;
+        throw Error(errorMessage);
+    }
 }
 
 export async function refresh(): Promise<Response> {
-    return await fetchData("/api/refresh",
+    const response = await fetch(URL + "refresh",
         {
             method: "POST",
+            mode: "cors",
             credentials: "include"
         });
+    if (response.ok) {
+        return response;
+    } else {
+        const errorBody = await response.json();
+        const errorMessage = errorBody.error;
+        throw Error(errorMessage);
+    }
 }
 
 export async function logout(): Promise<Response> {
-    return await fetchData("/api/logout", { 
-        method: "DELETE", 
+    const response = await fetch(URL + "logout", { 
+        method: "DELETE",
+        mode: "cors", 
         credentials: 'include' 
     }); // credentials: include tells the browser to include the JWT cookie
+
+    if (response.ok) {
+        return response;
+    } else {
+        const errorBody = await response.json();
+        const errorMessage = errorBody.error;
+        throw Error(errorMessage);
+    }
 }  
