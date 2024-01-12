@@ -4,6 +4,7 @@ import { Box, Button, Container, TextField, Typography } from '@mui/material'
 import React from 'react'
 import { newThread } from '../network/threadApi'
 import { useNavigate } from 'react-router-dom'
+import { ArrowBack } from '@mui/icons-material';
 
 export default function NewThread() {
     const navigate = useNavigate();
@@ -30,9 +31,9 @@ export default function NewThread() {
     return (
         <Container component="main" maxWidth="xs">
             <Box component="form" onSubmit={createNewThread} noValidate sx={{ mt: 1 }}>
-                <Button variant="outlined" onClick={backToMain}>Back to Main</Button>
+                <Button variant="outlined" onClick={backToMain}><ArrowBack /></Button>
                 <TextField margin="normal" required fullWidth id="title" label="Title" name="title" autoFocus/>
-                <TextField margin="normal" required fullWidth id="content" name="content" label="Content" multiline/>
+                <TextField margin="normal" required fullWidth id="content" name="content" label="Content" rows={5} multiline/>
                 <Button variant="contained" type="submit" fullWidth>Create Thread</Button>
                 {error && <Typography variant="body1" color="error">{error}</Typography>}
             </Box>

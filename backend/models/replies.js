@@ -6,7 +6,7 @@ export async function getAllReplies(threadID) {
         // use a recursive tree to call all replies and assign levels to them (level 1 means direct reply to thread, level 2 are the replies to level 1 replies, etc)
         const getRepliesQuery = {
             text: 
-            `SELECT replies.id, users.username, replies.content, replies.created_at
+            `SELECT replies.id, users.username, replies.content, replies.created_at, replies.edited
                 FROM replies JOIN users 
                 ON replies.user_id = users.id
                 WHERE thread_id = $1`,
@@ -50,11 +50,27 @@ export async function findReply(replyID) {
     }
 }
 
+export async function addEditedReply(replyID, newContent) {
+    try {
+        const editReplyQuery = {
+            text: 
+            `UPDATE replies
+                SET content=$2, edited=true
+                WHERE id=$1`,
+            values: [replyID, newContent],
+        };
+        return await pool.query(editReplyQuery);
+    } catch (error) {
+        console.error("Error querying SQL: ", error);
+        throw error;
+    }
+}
+
 export async function removeReply(replyID) {
     try {
         // we set the content to null, so whenever we encounter a null value, we know that the reply was deleted (all other replies should have non-null content)
         const removeReplyQuery = {
-            text: "UPDATE replies SET content = NULL WHERE id=$1",
+            text: "DELETE FROM replies WHERE id=$1",
             values: [replyID],
         };
         return await pool.query(removeReplyQuery);

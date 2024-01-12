@@ -3,5 +3,6 @@ export interface ThreadType {
     username: string,
     title: string,
     content: string,
-    created_at: Date
+    created_at: Date,
+    edited: boolean
 }

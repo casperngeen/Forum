@@ -1,5 +1,7 @@
 export default function ErrorPage() {
   return (
-    <div>ErrorPage</div>
+    <div style={{
+      margin: "auto"
+    }}>There has been an error rendering this page</div>
   )
 }

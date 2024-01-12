@@ -1,9 +1,9 @@
 
 import { Outlet } from 'react-router-dom';
 import Header from '../components/header';
-import { Alert, Snackbar, ThemeProvider } from '@mui/material';
+import { Alert, Container, Fade, Snackbar, ThemeProvider } from '@mui/material';
 import theme from '../components/theme';
-import { LoginContext } from '../interfaces/loginContext';
+import { AlertType, LoginContext } from '../interfaces/loginContext';
 import React from 'react';
 
 //the children component is rendered in outlet
@@ -12,25 +12,28 @@ import React from 'react';
 // main framework for the website: contains a nav bar, and a componenet to render the main content (threads or list of threads)
 export default function Root() {
   const [isLoggedIn, setIsLoggedIn] = React.useState<boolean>(false);
-  const [ openAlert, setOpenAlert ] = React.useState<boolean>(false);
+  const [ openAlert, setOpenAlert ] = React.useState<AlertType>({status: false, message: ""});
 
   const handleClose = () => {
-    setOpenAlert(false);
+    setOpenAlert(prevState => ({
+      ...prevState,
+      status: false
+    }));
   }
 
   return (
-    <div>
+    <Container component="main">
         <ThemeProvider theme={theme} >
-            <LoginContext.Provider value={{isLoggedIn, setIsLoggedIn, openAlert, setOpenAlert}}>
-              <Header />
+          <LoginContext.Provider value={{isLoggedIn, setIsLoggedIn, openAlert, setOpenAlert}}>
+            <Header />
               <Outlet />
-              <Snackbar open={openAlert} autoHideDuration={5000}>
-                <Alert severity='success' onClose={handleClose} sx={{ width: '100%' }}>
-                  Login successful!
-                </Alert>
-              </Snackbar>
-            </LoginContext.Provider>
+            <Snackbar open={openAlert.status} anchorOrigin={{vertical: "top", horizontal: "center"}} onClose={handleClose} TransitionComponent={Fade} TransitionProps={{ onExited: handleClose }}>
+              <Alert severity='success' sx={{ width: '100%' }}>
+                {openAlert.message}
+              </Alert>
+            </Snackbar>
+          </LoginContext.Provider>
         </ThemeProvider>
-    </div>
+    </Container>
   )
 }

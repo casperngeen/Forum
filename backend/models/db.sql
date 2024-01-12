@@ -10,6 +10,7 @@ CREATE TABLE threads (
     title VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    edited BOOLEAN DEFAULT false,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
@@ -19,6 +20,7 @@ CREATE TABLE replies (
     thread_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     content TEXT,
+    edited BOOLEAN DEFAULT false,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (thread_id) REFERENCES threads(id)
 );

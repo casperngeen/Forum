@@ -1,7 +1,6 @@
 import * as React from 'react';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
-import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
 import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
@@ -9,12 +8,11 @@ import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
-import { ThemeProvider } from '@mui/material/styles';
 import { login } from '../network/authApi';
 import { useNavigate } from 'react-router-dom';
-import theme from '../components/theme';
 import { LoginContext } from '../interfaces/loginContext';
 import { Snackbar, Alert } from '@mui/material';
+import { ArrowBack } from '@mui/icons-material';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function Copyright(props: any) {
@@ -38,7 +36,7 @@ export default function Login() {
     }
 
     const navigate = useNavigate();
-    const { setOpenAlert, setIsLoggedIn } = React.useContext(LoginContext);
+    const { setOpenAlert, isLoggedIn, setIsLoggedIn } = React.useContext(LoginContext);
     
     const [ error, setError ] = React.useState<ErrorType>({status: false, message: ""});
 
@@ -50,36 +48,49 @@ export default function Login() {
         const data = new FormData(event.currentTarget); 
         const username: string = data.get("username") as string;
         const password: string = data.get("password") as string;
-        try {
-            const userData = await login({username: username, password: password});
-            localStorage.setItem("user", JSON.stringify(userData));
-            setIsLoggedIn(true);
-            setOpenAlert(true);
-            navigate("/");
-        } catch (error) {
-            setError({status: true, message: (error as Error).message || "Login failed"});
+        if (isLoggedIn) {
+            setError({status: true, message: "You are already logged in"})
+        } else {
+            try {
+                const userData = await login({username: username, password: password});
+                localStorage.setItem("user", JSON.stringify(userData));
+                setIsLoggedIn(true);
+                setOpenAlert({status: true, message: "Login successful"});
+                navigate("/");
+            } catch (error) {
+                setError({status: true, message: (error as Error).message || "Login failed"});
+            }
         }
     };
 
     const handleErrorClose = () => {
-        setError({status: false, message: ""});
+        setError((prevState) => ({...prevState, status: false}));
+    }
+
+    const handleBack = () => {
+        navigate("/");
     }
 
     return (
-        <ThemeProvider theme={theme}>
-            <Container component="main" maxWidth="xs">
-                <CssBaseline />
-                    <Box
+            <Container component="main">
+                <Box
                     sx={{
-                        marginTop: 8,
+                        marginTop: 4,
                         display: 'flex',
                         flexDirection: 'column',
-                        alignItems: 'center',
+                        alignItems: 'center'
                     }}
-                    >
-                    <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
-                        <LockOutlinedIcon />
-                    </Avatar>
+                >
+                    <Grid container>
+                        <Grid item xs={4} marginTop={1}>
+                            <Button onClick={handleBack} variant="outlined"><ArrowBack /></Button>
+                        </Grid>
+                        <Grid item xs={4} sx={{display:"flex", justifyContent: "center"}}>
+                            <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+                                <LockOutlinedIcon />
+                            </Avatar>
+                        </Grid>
+                    </Grid>
                     <Typography component="h1" variant="h5">
                         Sign in
                     </Typography>
@@ -102,14 +113,13 @@ export default function Login() {
                                 </Grid>
                             </Grid>
                         </Box>
-                    </Box>
+                </Box>
                 <Copyright sx={{ mt: 8, mb: 4 }} />
-                <Snackbar open={error.status} autoHideDuration={5000}>
-                    <Alert onClose={handleErrorClose} severity="error" sx={{ width: '100%' }}>
+                <Snackbar open={error.status} anchorOrigin={{vertical: "top", horizontal: "center"}} autoHideDuration={3000} onClose={handleErrorClose}>
+                    <Alert severity="error" sx={{ width: '100%' }}>
                         {error.message}
                     </Alert>
                 </Snackbar>
             </Container>
-        </ThemeProvider>
     );
 }

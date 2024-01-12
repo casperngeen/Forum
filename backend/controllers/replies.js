@@ -1,6 +1,6 @@
 // contains all HTTP request handlers for requesting for rpelies of each individual thread
 
-import { getAllReplies, addNewReply, findReply, removeReply } from "../models/replies.js";
+import { getAllReplies, addNewReply, findReply, removeReply, addEditedReply } from "../models/replies.js";
 import CustomError from "../error.js";
 
 export async function threadReplies (req, res) {
@@ -36,6 +36,27 @@ export async function newReply (req, res) {
     }
 }
 
+export async function editReply (req, res) {
+    try {
+        const replyID = req.params.replyID;
+        const newContent = req.body.reply;
+
+        const result = await findReply(replyID);
+        if (newContent === result.rows[0].content) {
+            res.status(204);
+        } else {
+            await addEditedReply(replyID, newContent);
+            res.status(200).send("Reply was edited");
+        }
+    } catch (error) {
+        if (error instanceof CustomError) {
+            res.status(error.code).json({error: error.message});
+        } else {
+            res.status(500).json({error: error.message});
+        } 
+    }
+}
+
 export async function deleteReply (req, res) {
     try {
         // req.params since the replyID is in the url
@@ -54,7 +75,7 @@ export async function deleteReply (req, res) {
             throw new CustomError(403, "Permission denied.");
         }
 
-        //insert the reply into replies table
+        //remove the reply from replies table
         await removeReply(replyID);
         res.status(204).send("Reply was deleted")
     } catch (error) {

@@ -2,8 +2,8 @@
 
 import express from "express";
 import { authenticateToken, logIn, registration, logOut, refreshToken } from "../controllers/auth.js";
-import { getThreads, newThread, deleteThread } from "../controllers/threads.js";
-import { threadReplies, newReply, deleteReply } from "../controllers/replies.js";
+import { getThreads, newThread, deleteThread, editThread, getSingleThread } from "../controllers/threads.js";
+import { threadReplies, newReply, deleteReply, editReply } from "../controllers/replies.js";
 
 const router = express.Router();
 
@@ -14,14 +14,16 @@ router.post("/refresh", authenticateToken, refreshToken);
 router.delete("/logout", authenticateToken, logOut);
 
 router.get("/threads", getThreads);
+router.get("/threads/:threadID", getSingleThread);
 router.post("/new", authenticateToken, newThread);
 
 router.get("/:threadID", threadReplies);
+router.put("/:threadID", authenticateToken, editThread);
 router.delete("/:threadID", authenticateToken, deleteThread);
 router.post("/:threadID", authenticateToken, newReply); // replying to the main thread
 
-router.post(":/threadID/:replyID", authenticateToken, newReply); // replying to another reply
-router.put(":/threadID/:replyID", authenticateToken, deleteReply);
+router.put("/:threadID/:replyID", authenticateToken, editReply);
+router.delete("/:threadID/:replyID", authenticateToken, deleteReply);
 
 export default router;
 

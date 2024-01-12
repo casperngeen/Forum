@@ -14,6 +14,7 @@ import theme from '../components/theme';
 import { Alert, Snackbar } from '@mui/material';
 import { register } from '../network/authApi';
 import { useNavigate } from 'react-router-dom';
+import { ArrowBack } from '@mui/icons-material';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function Copyright(props: any) {
@@ -52,7 +53,11 @@ export default function Register() {
     const username = data.get('username') as string;
     const password = data.get('password') as string;
     const checkPassword = data.get('checkPassword') as string;
-    if (password !== checkPassword) {
+    if (username.length === 0) {
+      setError({status: true, message: "Username cannot be empty"});
+    } else if (password.length < 5) {
+      setError({status: true, message: "Password needs to be at least 5 characters long!"});
+    } else if (password !== checkPassword) {
       setError({status: true, message: "Passwords do not match!"});
     } else {
       try {
@@ -63,6 +68,10 @@ export default function Register() {
       }
     }
   };
+  
+  const handleBack = () => {
+    navigate('/');
+  }
 
   const handleClose = () => {
     setError({status: false, message: ""});
@@ -75,15 +84,22 @@ export default function Register() {
         <CssBaseline />
         <Box
           sx={{
-            marginTop: 8,
+            marginTop: 4,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
           }}
         >
-          <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
-            <LockOutlinedIcon />
-          </Avatar>
+          <Grid container>
+            <Grid item xs={4} marginTop={1}>
+                <Button onClick={handleBack} variant="outlined"><ArrowBack /></Button>
+            </Grid>
+            <Grid item xs={4} sx={{display:"flex", justifyContent: "center"}}>
+                <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+                  <LockOutlinedIcon />
+                </Avatar>
+            </Grid>
+          </Grid>
           <Typography component="h1" variant="h5">
             Register
           </Typography>

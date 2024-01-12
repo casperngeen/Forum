@@ -2,6 +2,7 @@ import express from "express";
 import router from "./routes/router.js";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
+import cors from "cors";
 
 // creates an instance of the express application
 const app = express();
@@ -13,14 +14,11 @@ app.use(cookieParser());
 //middleware to parse json data in the request body
 app.use(bodyParser.json());
 
-// enable CORS for all routes
-app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    next();
-  });
+//Allow CORS
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+}));
 
 // any request will be routed to the router
 app.use("/", router);
