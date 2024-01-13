@@ -1,10 +1,12 @@
 
 import { Outlet } from 'react-router-dom';
 import Header from '../components/header';
-import { Alert, Container, Fade, Snackbar, ThemeProvider } from '@mui/material';
-import theme from '../components/theme';
-import { AlertType, LoginContext } from '../interfaces/loginContext';
+import { Container, ThemeProvider } from '@mui/material';
+import theme from '../utils/theme';
+import { RootContext } from '../contexts/rootContext';
 import React from 'react';
+import AlertSuccessSnackBar from '../components/alertSuccessSnackBar';
+import AlertType from '../types/alertType';
 
 //the children component is rendered in outlet
 // aria-label: description for the html tag/element, content does not affect rendering of the html
@@ -12,28 +14,24 @@ import React from 'react';
 // main framework for the website: contains a nav bar, and a componenet to render the main content (threads or list of threads)
 export default function Root() {
   const [isLoggedIn, setIsLoggedIn] = React.useState<boolean>(false);
-  const [ openAlert, setOpenAlert ] = React.useState<AlertType>({status: false, message: ""});
+  const [ successAlert, setSuccessAlert ] = React.useState<AlertType>({status: false, message: ""});
 
   const handleClose = () => {
-    setOpenAlert(prevState => ({
+    setSuccessAlert(prevState => ({
       ...prevState,
       status: false
     }));
   }
 
   return (
-    <Container component="main">
-        <ThemeProvider theme={theme} >
-          <LoginContext.Provider value={{isLoggedIn, setIsLoggedIn, openAlert, setOpenAlert}}>
-            <Header />
+    <ThemeProvider theme={theme} >
+      <Container sx={{margin:"auto", width: "50rem"}}>
+          <RootContext.Provider value={{isLoggedIn, setIsLoggedIn, successAlert, setSuccessAlert}}>
+              <Header />
               <Outlet />
-            <Snackbar open={openAlert.status} anchorOrigin={{vertical: "top", horizontal: "center"}} onClose={handleClose} TransitionComponent={Fade} TransitionProps={{ onExited: handleClose }}>
-              <Alert severity='success' sx={{ width: '100%' }}>
-                {openAlert.message}
-              </Alert>
-            </Snackbar>
-          </LoginContext.Provider>
-        </ThemeProvider>
-    </Container>
+            <AlertSuccessSnackBar state={successAlert} onClose={handleClose} />
+          </RootContext.Provider>   
+      </Container>
+    </ThemeProvider>
   )
 }

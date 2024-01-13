@@ -4,21 +4,24 @@
 
 import React from 'react'
 import { getAllThreads } from '../network/threadApi'
-import { Alert, Box, Button, Container, Snackbar, Stack, Typography } from '@mui/material';
-import { ThreadType } from '../interfaces/thread';
+import { Box, Button, Container, Stack, Typography } from '@mui/material';
+import ThreadType from '../types/thread';
 import Thread from '../components/thread';
 import { useNavigate } from 'react-router-dom';
-import { LoginContext } from '../interfaces/loginContext';
-import { ErrorType } from '../interfaces/replyContext';
+import { RootContext } from '../contexts/rootContext';
+import AlertType from '../types/alertType';
+import AlertErrorSnackBar from '../components/alertErrorSnackBar';
+
 
 export default function Home() {
     const [threads, setThreads] = React.useState<ThreadType[]>([]);
     const [threadCount, setThreadCount] = React.useState<number>(0);
-    const { isLoggedIn } = React.useContext(LoginContext);
+    const { isLoggedIn } = React.useContext(RootContext);
     const [error, setError] = React.useState<string>("");
-    const [alertError, setAlertError] = React.useState<ErrorType>({status: false, message: ""});
+    const [errorAlert, setErrorAlert] = React.useState<AlertType>({status: false, message: ""});
     const navigate = useNavigate();
     
+    // fetches all threads to be rendered
     React.useEffect(() => {
         const fetchThreads = async () => {
             try {
@@ -28,7 +31,6 @@ export default function Home() {
             } catch (error) {
                 setError((error as Error).message ||"There was an issue fetching the threads.")
             }
-            
         };
         fetchThreads();
     }, []);
@@ -38,12 +40,15 @@ export default function Home() {
         if (isLoggedIn) {
             navigate("/createThread");
         } else {
-            setAlertError({status: true, message: "You are not logged in!"});
+            setErrorAlert({status: true, message: "You are not logged in!"});
         }
     }
 
-    const handleCloseAlert = () => {
-        setAlertError({status: false, message: ""});
+    const handleClose = () => {
+        setErrorAlert((prevState) => ({
+            ...prevState,
+            status: false,
+        }));
     }
     
     //maps the threads fetched to a list of thread components to be displayed if they can be fetched successfully
@@ -57,11 +62,7 @@ export default function Home() {
                         <Thread key={thread.id} thread={thread}></Thread>
                     ))}
                 </Stack>
-                <Snackbar open={alertError.status} anchorOrigin={{vertical: "top", horizontal: "center"}} onClose={handleCloseAlert}>
-                    <Alert severity="error" sx={{ width: '100%' }}>
-                        {alertError.message}
-                    </Alert>
-                </Snackbar>
+                <AlertErrorSnackBar state={errorAlert} onClose={handleClose} />
             </Container>
         )
     } else {

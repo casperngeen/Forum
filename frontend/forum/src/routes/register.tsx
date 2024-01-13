@@ -9,26 +9,13 @@ import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
-import { ThemeProvider } from '@mui/material/styles';
-import theme from '../components/theme';
-import { Alert, Snackbar } from '@mui/material';
 import { register } from '../network/authApi';
 import { useNavigate } from 'react-router-dom';
 import { ArrowBack } from '@mui/icons-material';
+import AlertErrorSnackBar from '../components/alertErrorSnackBar';
+import { RootContext } from '../contexts/rootContext';
+import Copyright from '../components/copyright';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function Copyright(props: any) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link color="inherit" href="https://casperngeen.vercel.app/">
-        Casper Ng
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
 
 // TODO: change the handleSubmit to log the data to the database (make fetch request)
 export default function Register() {
@@ -39,14 +26,9 @@ export default function Register() {
 
   const navigate = useNavigate();
   const [ error, setError ] = React.useState<ErrorType>({status: false, message: ""});
-  const [ success, setSuccess ] = React.useState<boolean>(false);
+  const { setSuccessAlert } = React.useContext(RootContext);
 
-  React.useEffect(() => {
-    if (success) {
-      navigate("/login");
-    }
-  }, [navigate, success])
-
+  // checks if form is filled up properly, then sends the data to the backend for storage
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -62,7 +44,8 @@ export default function Register() {
     } else {
       try {
         await register({username: username, password: password});
-        setSuccess(true);
+        setSuccessAlert({status: true, message: "Registration successful"});
+        navigate("/login");
       } catch (error) {
         setError({status: true, message: (error as Error).message || "There has been an error registering"});
       }
@@ -73,14 +56,16 @@ export default function Register() {
     navigate('/');
   }
 
+  // handles closing of snackbar
   const handleClose = () => {
-    setError({status: false, message: ""});
-    setSuccess(false);
+    setError((prevState) => ({
+      ...prevState,
+      status: false,
+    }));
   }
 
   return (
-    <ThemeProvider theme={theme}>
-      <Container component="main" maxWidth="xs">
+      <Container component="main">
         <CssBaseline />
         <Box
           sx={{
@@ -91,7 +76,7 @@ export default function Register() {
           }}
         >
           <Grid container>
-            <Grid item xs={4} marginTop={1}>
+            <Grid item xs={4} marginTop={1} sx={{display: "flex", justifyContent:"center"}}>
                 <Button onClick={handleBack} variant="outlined"><ArrowBack /></Button>
             </Grid>
             <Grid item xs={4} sx={{display:"flex", justifyContent: "center"}}>
@@ -103,22 +88,14 @@ export default function Register() {
           <Typography component="h1" variant="h5">
             Register
           </Typography>
-          <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField required fullWidth id="username" label="Username" name="username" autoComplete="username"/>
-              </Grid>
-              <Grid item xs={12}>
-                <TextField required fullWidth name="password" label="Password" type="password" id="password" autoComplete="off" />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField required fullWidth name="checkPassword" label="Re-enter Password" type="password" id="checkPassword" autoComplete="off" />
-              </Grid>
-            </Grid>
+          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1, width: "33.7rem" }}>
+            <TextField margin="normal" required fullWidth id="username" label="Username" name="username" autoComplete="username" autoFocus/>
+            <TextField margin="normal" required fullWidth name="password" label="Password" type="password" id="password" autoComplete="off" />
+            <TextField margin="normal" required fullWidth name="checkPassword" label="Re-enter Password" type="password" id="checkPassword" autoComplete="off" />
             <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
               Sign Up
             </Button>
-            <Grid container justifyContent="flex-end">
+            <Grid container>
               <Grid item>
                 <Link href="/login" variant="body2">
                   Already have an account? Sign in
@@ -127,18 +104,8 @@ export default function Register() {
             </Grid>
           </Box>
         </Box>
-        <Copyright sx={{ mt: 5 }} />
-        <Snackbar open={error.status} autoHideDuration={5000} onClose={handleClose}>
-          <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
-            {error.message}
-          </Alert>
-        </Snackbar>
-        <Snackbar open={success} autoHideDuration={5000} onClose={handleClose}>
-          <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
-            Registration successful!
-          </Alert>
-        </Snackbar>
+        <Copyright sx={{ mt: 8, mb: 4 }} />
+        <AlertErrorSnackBar state={error} onClose={handleClose} />
       </Container>
-    </ThemeProvider>
   );
 }

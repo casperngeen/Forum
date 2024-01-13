@@ -4,7 +4,6 @@ import {
   createBrowserRouter,
   RouterProvider,
 } from "react-router-dom";
-import './index.css'
 import Root from './routes/root';
 import ErrorPage from './routes/errorPage';
 import Login from './routes/login';
@@ -12,8 +11,8 @@ import Register from './routes/register';
 import Home from './routes/home';
 import NewThread from './routes/newThread';
 import ThreadPage from './routes/threadPage';
+import "./index.css";
 
-// TODO make everything a child of root
 const router = createBrowserRouter([
   {
     path: "/",

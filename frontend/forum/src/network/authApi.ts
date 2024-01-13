@@ -1,6 +1,6 @@
 // a general function for fetch APIs, the first param is the path to the resource to fetch data from, 
 
-import { User } from "../interfaces/user";
+import UserType from "../types/user";
 
 const URL = "http://localhost:3000/"
 
@@ -36,7 +36,7 @@ export async function register(credentials: Credentials) {
     }
 }
 
-export async function login(credentials: Credentials): Promise<User> {
+export async function login(credentials: Credentials): Promise<UserType> {
     const response = await fetch(URL + "login",
         {
             method: "POST",

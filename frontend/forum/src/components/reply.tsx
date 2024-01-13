@@ -1,18 +1,18 @@
-import { Box, Button, Container, Grid, Modal, TextField, Typography } from '@mui/material'
-import { ReplyType } from '../interfaces/reply';
+import { Box, Button, Container, Grid, Modal, Paper, TextField, Typography } from '@mui/material'
+import ReplyType from '../types/reply';
 import React from 'react';
-import { LoginContext } from '../interfaces/loginContext';
+import { RootContext } from '../contexts/rootContext';
 import { Edit, Delete } from '@mui/icons-material';
 import { deleteReply, editReply } from '../network/replyApi';
-import { ReplyContext } from '../interfaces/replyContext';
+import { ReplyContext } from '../contexts/replyContext';
 
 
 // renders a single reply (be it nested or not)
 export default function Reply({ reply, threadID }: {reply: ReplyType, threadID: number}) {
   const {id, username, content, created_at, edited} = reply;
   const [isUser, setIsUser] = React.useState<boolean>(false);
-  const { isLoggedIn, setOpenAlert } = React.useContext(LoginContext);
-  const { setAlertError, setTriggerRender } = React.useContext(ReplyContext);
+  const { isLoggedIn, setSuccessAlert } = React.useContext(RootContext);
+  const { setErrorAlert, setTriggerRender } = React.useContext(ReplyContext);
   const [openEditReplyModal, setOpenEditReplyModal] = React.useState<boolean>(false);
   const [openDeleteReplyModal, setOpenDeleteReplyModal] = React.useState<boolean>(false);
   const [replyValue, setReplyValue] = React.useState<string>(content);
@@ -38,11 +38,11 @@ export default function Reply({ reply, threadID }: {reply: ReplyType, threadID: 
     try {
       await deleteReply({threadID: threadID, replyID: id});
       setOpenDeleteReplyModal(false);
-      setOpenAlert({status: true, message: "Reply deleted successfully"});
+      setSuccessAlert({status: true, message: "Reply deleted successfully"});
       setTriggerRender((prev) => !prev);
     } catch (error) {
         console.log(error);
-        setAlertError({status: true, message: "Unable to delete reply"});
+        setErrorAlert({status: true, message: "Unable to delete reply"});
     }
   }
 
@@ -63,11 +63,11 @@ export default function Reply({ reply, threadID }: {reply: ReplyType, threadID: 
     try {
       await editReply({threadID: threadID, replyID: id, newReply: replyValue});
       setOpenEditReplyModal(false);
-      setOpenAlert({status: true, message: "Reply edited successfully"});
+      setSuccessAlert({status: true, message: "Reply edited successfully"});
       setTriggerRender((prev) => !prev);
     } catch (error) {
       console.log(error);
-      setAlertError({status: true, message: "Unable to edit reply"});
+      setErrorAlert({status: true, message: "Unable to edit reply"});
     }
   }
 
@@ -89,21 +89,23 @@ const inputStyle = {
 
   return (
     <Container>
-      <Box display="flex" flexDirection="column" paddingY={2} columnGap={2}>  
-          <Typography variant="subtitle1">By {username}, created at {created_at.toString()} {edited && "[EDITED]"}</Typography>
-          <Typography variant="body1">{content}</Typography>
-          {
-            isUser && 
-            <Grid container spacing={2} justifyContent="flex-end">
-              <Grid item>
-                <Button onClick={handleOpenEditModal}><Edit /></Button>
+      <Paper sx= {{display: "flex", flexDirection: "column", mt: 3, padding: 2}}>
+        <Box display="flex" flexDirection="column">  
+            <Typography variant="subtitle1">By {username}, created at {created_at.toString()} {edited && "[EDITED]"}</Typography>
+            <Typography variant="body1" fontSize="1.25rem" mt={1}>{content}</Typography>
+            {
+              isUser && 
+              <Grid container justifyContent="flex-end">
+                <Grid item>
+                  <Button onClick={handleOpenEditModal}><Edit /></Button>
+                </Grid>
+                <Grid item>
+                    <Button onClick={handleOpenDeleteModal}><Delete /></Button>
+                </Grid>
               </Grid>
-              <Grid item>
-                  <Button onClick={handleOpenDeleteModal}><Delete /></Button>
-              </Grid>
-            </Grid>
-          }
-      </Box>
+            }
+        </Box>
+      </Paper>
       <Modal
         open={openDeleteReplyModal}
         aria-labelledby="modal-modal-title"

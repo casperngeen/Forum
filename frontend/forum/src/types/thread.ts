@@ -1,4 +1,4 @@
-export interface ThreadType {
+export default interface ThreadType {
     id: number,
     username: string,
     title: string,

@@ -1,4 +1,4 @@
-import { ThreadType } from "../interfaces/thread";
+import { ThreadType } from "../types/thread";
 
 const URL = "http://localhost:3000/"
 

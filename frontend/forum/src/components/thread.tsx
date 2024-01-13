@@ -1,5 +1,5 @@
-import { Box, Typography } from '@mui/material'
-import { ThreadType } from '../interfaces/thread';
+import { Box, Paper, Typography } from '@mui/material'
+import ThreadType from '../types/thread';
 import { useNavigate } from 'react-router-dom';
 
 interface threadProp {
@@ -14,14 +14,13 @@ export default function Thread({ thread }: threadProp) {
     }
 
     return (
-        <Box onClick={enterThread} display="flex" flexDirection="column" columnGap={2} padding={2}
-            sx={{ 
-                borderRadius: 3,
-                '&:hover': {backgroundColor: (theme) => theme.palette.grey[200],
-                            cursor: "pointer"}}}> 
-            <Typography variant="h4">{title}</Typography>   
-            <Typography variant="subtitle1">By {username}, created at {created_at.toString()} {edited && "[EDITED]"}</Typography>
-            <Typography variant="body2">{content}</Typography>
-        </Box>
+        <Paper sx={{ '&:hover': {backgroundColor: "#e0e0e0",
+                        cursor: "pointer"}}}>
+            <Box onClick={enterThread} display="flex" flexDirection="column" columnGap={2} padding={2}> 
+                <Typography variant="h4">{title}</Typography>   
+                <Typography variant="subtitle1">By {username}, created at {created_at.toString()} {edited && "[EDITED]"}</Typography>
+                <Typography variant="body2">{content}</Typography>
+            </Box>
+        </Paper>
     )
 }

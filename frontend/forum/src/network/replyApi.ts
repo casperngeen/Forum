@@ -1,4 +1,4 @@
-import { ReplyType } from "../interfaces/reply";
+import { ReplyType } from "../types/reply";
 
 const URL = "http://localhost:3000/"
 

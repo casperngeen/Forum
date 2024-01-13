@@ -1,20 +1,25 @@
 import React from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 import { getAllReplies, newReply } from '../network/replyApi';
-import { ReplyType } from '../interfaces/reply';
-import { Alert, Box, Button, Container, Grid, Modal, Snackbar, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Container, Grid, Paper, Stack, TextField, Typography } from '@mui/material';
 import Reply from '../components/reply';
-import { LoginContext } from '../interfaces/loginContext';
+import { RootContext } from '../contexts/rootContext';
 import { ArrowBack, Delete, Edit, Send } from '@mui/icons-material';
-import { deleteThread, editThread, getSingleThread } from '../network/threadApi';
-import { ErrorType, ReplyContext } from '../interfaces/replyContext';
-import { ThreadType } from '../interfaces/thread';
+import { getSingleThread } from '../network/threadApi';
+import { ReplyContext } from '../contexts/replyContext';
+import AlertSuccessSnackBar from '../components/alertSuccessSnackBar';
+import AlertErrorSnackBar from '../components/alertErrorSnackBar';
+import AlertType from '../types/alertType';
+import ThreadEditModal from '../components/threadEditModal';
+import ReplyType from '../types/reply';
+import ThreadType from '../types/thread';
+import ThreadDeleteModal from '../components/threadDeleteModal';
 
 export default function ThreadPage() {
     const navigate = useNavigate();
     const threadID = Number(useParams().threadID); //params.threadID!: the ! asserts that the value is non-null
 
-    const { isLoggedIn, openAlert, setOpenAlert } = React.useContext(LoginContext);
+    const { isLoggedIn, successAlert, setSuccessAlert } = React.useContext(RootContext);
     const [triggerRender, setTriggerRender] = React.useState<boolean>(false);
     const [threadData, setThreadData] = React.useState<ThreadType>({id: 0, username: "Error", title: "Error", content: "Error", created_at: new Date(), edited: false });
     const [replyValue, setReplyValue] = React.useState<string>("");
@@ -22,12 +27,13 @@ export default function ThreadPage() {
     const [isUser, setIsUser] = React.useState<boolean>(false);
     const [replies, setReplies] = React.useState<ReplyType[]>([]);
     const [replyCount, setReplyCount] = React.useState<number>(0);
-    const [repliesError, setRepliesError] = React.useState<ErrorType>({status: false, message: ""});
-    const [alertError, setAlertError] = React.useState<ErrorType>({status: false, message: ""});
+    const [repliesError, setRepliesError] = React.useState<AlertType>({status: false, message: ""});
+    const [errorAlert, setErrorAlert] = React.useState<AlertType>({status: false, message: ""});
     const [replySubmit, setReplySubmit] = React.useState<boolean>(false);
     const [openEditThreadModal, setOpenEditThreadModal] = React.useState<boolean>(false);
     const [openDeleteThreadModal, setOpenDeleteThreadModal] = React.useState<boolean>(false);
 
+    // feteches the thread data to be rendered, runs again when thread is edited (using triggerRender)
     React.useEffect(() => {
         const fetchThreadData = async () => {
             try {
@@ -41,6 +47,7 @@ export default function ThreadPage() {
         setInputValue(threadData.content);
     }, [threadID, triggerRender, threadData.content])
 
+    // fetches the list of replies to be rendered, runs again when new reply is submited or if any reply is edited (also using triggerRender)
     React.useEffect(() => {
         const fetchReplies = async () => {
             try {
@@ -65,68 +72,29 @@ export default function ThreadPage() {
         navigate("/");
     }
 
-    const handleClose = () => {
-        setOpenAlert(prevState => ({
+    // handles the closing of the snackbars
+    const handleCloseSuccess = () => {
+        setSuccessAlert(prevState => ({
+            ...prevState,
+            status: false
+        }));
+    }
+    const handleCloseError = () => {
+        setErrorAlert(prevState => ({
             ...prevState,
             status: false
         }));
     }
 
-    const handleCloseAlert = () => {
-        setAlertError(prevState => ({
-            ...prevState,
-            status: false
-        }));
-    }
-
+    // handles opening of edit/delete modals
     const handleOpenDeleteModal = () => {
         setOpenDeleteThreadModal(true);
     }
-
-    const handleCloseDeleteModal = () => {
-        setOpenDeleteThreadModal(false);
-    }
-
-    const handleDeleteThread = async () => {
-        try {
-            await deleteThread({threadID: threadID});
-            setOpenDeleteThreadModal(false);
-            setOpenAlert({status: true, message: "Thread successfully deleted"});
-            navigate("/");
-        } catch (error) {
-            console.log(error);
-            setAlertError({status: true, message: "Unable to delete thread"});
-        }
-    }
-
-    const handleInputChange = (event: { target: { value: React.SetStateAction<string>; }; }) => {
-        setInputValue(event.target.value);
-    };
-        
     const handleOpenEditModal = () => {
         setOpenEditThreadModal(true);
     }
 
-    const handleCloseEditModal = () => {
-        setOpenEditThreadModal(false);
-    }
-
-    const handleEditThread = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        const data = new FormData(event.currentTarget); 
-        const newContent: string = data.get("newContent") as string
-        try {
-            
-            await editThread({threadID: threadID, newContent: newContent}); //
-            setOpenEditThreadModal(false);
-            setOpenAlert({status: true, message: "Thread successfully edited"});
-            setTriggerRender((prev) => !prev);
-        } catch (error) {
-            console.log(error);
-            setAlertError({status: true, message: "Unable to edit thread"});
-        }
-    }
-
+    // updates the state of reply value everytime there is a change in input
     const handleReplyChange = (event: { target: { value: React.SetStateAction<string>; }; }) => {
         setReplyValue(event.target.value);
     }
@@ -135,46 +103,32 @@ export default function ThreadPage() {
     const submitReply = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (!isLoggedIn) {
-            setAlertError({status: true, message: "You are not logged in!"});
+            setErrorAlert({status: true, message: "You are not logged in!"});
         } else {
             if (replyValue.length === 0) {
-                setAlertError({status: true, message: "You cannot send an empty reply"})
+                setErrorAlert({status: true, message: "You cannot send an empty reply"})
             } else {
                 try {
                     await newReply({threadID: threadID, reply: replyValue});
                     setReplySubmit(!replySubmit);
                     setReplyValue("");
                 } catch (error) {
-                    setAlertError({status: true, message: (error as Error).message ||"There was an issue submitting the reply"});
+                    setErrorAlert({status: true, message: (error as Error).message ||"There was an issue submitting the reply"});
                 }
             }
         }
     }
 
-    const inputStyle = {
-        color: inputValue === threadData.content ? 'gray' : 'black', // Adjust the colors as needed
-    };
-
-    const style = {
-        position: 'absolute' as const,
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 400,
-        bgcolor: 'background.paper',
-        border: '2px solid #000',
-        boxShadow: 24,
-        p: 4,
-    };
+    
     
     return (
-        <ReplyContext.Provider value={{alertError, setAlertError, triggerRender, setTriggerRender}}>
+        <ReplyContext.Provider value={{errorAlert, setErrorAlert, triggerRender, setTriggerRender}}>
             <Container component="main">
                 <Button variant="outlined" onClick={backToMain}><ArrowBack /></Button>
-                <Box border={1} padding={2} marginBottom={3}>
+                <Paper sx={{marginY: 3, padding: 3}}>
                     <Typography variant='h4' fontWeight="bold">{threadData.title}</Typography>
-                    <Typography variant="subtitle1">By {threadData.username}, created at {threadData.created_at.toString()} {threadData.edited && "[EDITED]"}</Typography>
-                    <Typography variant='body1'>{threadData.content}</Typography>
+                    <Typography variant="subtitle1" mt={2}>By {threadData.username}, created at {threadData.created_at.toString()} {threadData.edited && "[EDITED]"}</Typography>
+                    <Typography variant='body1' fontSize="1.25rem" mt={1}>{threadData.content}</Typography>
                     {
                         isUser && 
                         <Grid container justifyContent="flex-end">
@@ -186,7 +140,7 @@ export default function ThreadPage() {
                             </Grid>
                         </Grid>
                     }
-                </Box>
+                </Paper>
                 <Typography variant='h6' marginBottom={2}>Number of replies: {replyCount}</Typography>
                 <Box component="form" onSubmit={submitReply} noValidate sx={{ mt: 1 }}>
                     <Grid container alignItems="center" justifyContent="flex-start">
@@ -200,80 +154,35 @@ export default function ThreadPage() {
                 </Box>
                 {repliesError.status
                 ? <Typography variant="body1" color="error">{repliesError.message}</Typography>
-                : (<Stack>
+                : (<Stack mb={3}>
                     {replies.map((reply) => (
                         <Reply key={reply.id} reply={reply} threadID={threadID}></Reply>
                         ))}
                 </Stack>)
                 }
-                <Modal
-                    open={openDeleteThreadModal}
-                    aria-labelledby="delete-modal-title"
-                    aria-describedby="delete-modal-description"
-                >
-                    <Box sx={style}>
-                    <Typography id="delete-modal-title" variant="h6" component="h2" fontWeight="bold">
-                        Confirm Delete
-                    </Typography>
-                    <Typography id="delete-modal-description" sx={{ my: 2 }}>
-                        Are you sure you want to delete this thread?
-                    </Typography>
-                    <Grid container spacing={2} justifyContent="flex-end">
-                        <Grid item>
-                            <Button variant="outlined" color="primary" onClick={handleCloseDeleteModal}>
-                                Cancel
-                            </Button>
-                        </Grid>
-                        <Grid item>
-                            <Button variant="outlined" color="primary" onClick={handleDeleteThread}>
-                                Confirm
-                            </Button>
-                        </Grid>
-                    </Grid>
-                    </Box>
-                </Modal>
+                
+                <ThreadDeleteModal 
+                    openDeleteThreadModal={openDeleteThreadModal} 
+                    setOpenDeleteThreadModal={setOpenDeleteThreadModal} 
+                    setSuccessAlert={setSuccessAlert} 
+                    setErrorAlert={setErrorAlert} 
+                    threadID={threadID}
+                />
 
-                <Modal
-                    open={openEditThreadModal}
-                    aria-labelledby="edit-modal-title"
-                    aria-describedby="edit-modal-description"
-                >
-                    <Box component="form" sx={style} onSubmit={handleEditThread}>
-                        <Typography id="edit-modal-title" variant="h5" component="h2" fontWeight="bold">
-                            Edit Thread
-                        </Typography>
-                        <Typography variant="h6" paddingY={1}>
-                            Title: <strong>{threadData.title}</strong>
-                        </Typography>
-                        <Typography variant="h6">
-                            Content:
-                        </Typography>
-                        <TextField multiline rows={5} defaultValue={inputValue} onChange={handleInputChange} inputProps={{style: inputStyle}} fullWidth id="newContent" name="newContent"/>
-                        <Grid container spacing={2} justifyContent="flex-end" paddingTop={2}>
-                            <Grid item>
-                                <Button variant="outlined" color="primary" onClick={handleCloseEditModal}>
-                                    Cancel
-                                </Button>
-                            </Grid>
-                            <Grid item>
-                                <Button variant="outlined" color="primary" disabled={inputValue === threadData.content} type='submit'>
-                                    Edit
-                                </Button>
-                            </Grid>
-                        </Grid>
-                    </Box>
-                </Modal>
+                <ThreadEditModal 
+                    openEditThreadModal={openEditThreadModal} 
+                    setOpenEditThreadModal={setOpenEditThreadModal} 
+                    inputValue={inputValue} 
+                    setInputValue={setInputValue} 
+                    setSuccessAlert={setSuccessAlert} 
+                    setTriggerRender={setTriggerRender} 
+                    setErrorAlert={setErrorAlert} 
+                    threadID={threadID} 
+                    threadData={threadData}  
+                />
 
-                <Snackbar open={openAlert.status} anchorOrigin={{vertical: "top", horizontal: "center"}} onClose={handleClose}>
-                    <Alert severity='success' sx={{ width: '100%' }}>
-                        {openAlert.message}
-                    </Alert>
-                </Snackbar>
-                <Snackbar open={alertError.status} anchorOrigin={{vertical: "top", horizontal: "center"}} onClose={handleCloseAlert}>
-                    <Alert severity="error" sx={{ width: '100%' }}>
-                        {alertError.message}
-                    </Alert>
-                </Snackbar>
+                <AlertSuccessSnackBar state={successAlert} onClose={handleCloseSuccess}/>
+                <AlertErrorSnackBar state={errorAlert} onClose={handleCloseError} />
             </Container>
         </ReplyContext.Provider>
     )

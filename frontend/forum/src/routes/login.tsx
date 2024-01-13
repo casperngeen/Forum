@@ -10,23 +10,11 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { login } from '../network/authApi';
 import { useNavigate } from 'react-router-dom';
-import { LoginContext } from '../interfaces/loginContext';
-import { Snackbar, Alert } from '@mui/material';
+import { RootContext } from '../contexts/rootContext';
+import { CssBaseline } from '@mui/material';
 import { ArrowBack } from '@mui/icons-material';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function Copyright(props: any) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link color="inherit" href="https://casperngeen.vercel.app/">
-        Casper Ng
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
+import AlertErrorSnackBar from '../components/alertErrorSnackBar';
+import Copyright from '../components/copyright';
 
 // TODO change the handleSubmit to verifying with database (fetch request) -> need a specific error message page also for wrong password or username
 export default function Login() {
@@ -36,7 +24,7 @@ export default function Login() {
     }
 
     const navigate = useNavigate();
-    const { setOpenAlert, isLoggedIn, setIsLoggedIn } = React.useContext(LoginContext);
+    const { setSuccessAlert, isLoggedIn, setIsLoggedIn } = React.useContext(RootContext);
     
     const [ error, setError ] = React.useState<ErrorType>({status: false, message: ""});
 
@@ -55,7 +43,7 @@ export default function Login() {
                 const userData = await login({username: username, password: password});
                 localStorage.setItem("user", JSON.stringify(userData));
                 setIsLoggedIn(true);
-                setOpenAlert({status: true, message: "Login successful"});
+                setSuccessAlert({status: true, message: "Login successful"});
                 navigate("/");
             } catch (error) {
                 setError({status: true, message: (error as Error).message || "Login failed"});
@@ -63,7 +51,7 @@ export default function Login() {
         }
     };
 
-    const handleErrorClose = () => {
+    const handleClose = () => {
         setError((prevState) => ({...prevState, status: false}));
     }
 
@@ -73,6 +61,7 @@ export default function Login() {
 
     return (
             <Container component="main">
+                <CssBaseline />
                 <Box
                     sx={{
                         marginTop: 4,
@@ -82,7 +71,7 @@ export default function Login() {
                     }}
                 >
                     <Grid container>
-                        <Grid item xs={4} marginTop={1}>
+                        <Grid item xs={4} marginTop={1} sx={{display: "flex", justifyContent:"center"}}>
                             <Button onClick={handleBack} variant="outlined"><ArrowBack /></Button>
                         </Grid>
                         <Grid item xs={4} sx={{display:"flex", justifyContent: "center"}}>
@@ -115,11 +104,7 @@ export default function Login() {
                         </Box>
                 </Box>
                 <Copyright sx={{ mt: 8, mb: 4 }} />
-                <Snackbar open={error.status} anchorOrigin={{vertical: "top", horizontal: "center"}} autoHideDuration={3000} onClose={handleErrorClose}>
-                    <Alert severity="error" sx={{ width: '100%' }}>
-                        {error.message}
-                    </Alert>
-                </Snackbar>
+                <AlertErrorSnackBar state={error} onClose={handleClose}/>
             </Container>
     );
 }

@@ -1,4 +1,4 @@
-export interface ReplyType {
+export default interface ReplyType {
     id: number,
     username: string,
     thread_id: number,
