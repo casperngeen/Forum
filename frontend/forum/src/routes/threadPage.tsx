@@ -14,12 +14,13 @@ import ThreadEditModal from '../components/threadEditModal';
 import ReplyType from '../types/reply';
 import ThreadType from '../types/thread';
 import ThreadDeleteModal from '../components/threadDeleteModal';
+import { checkLoggedIn } from '../utils/checkLoggedIn';
 
 export default function ThreadPage() {
     const navigate = useNavigate();
     const threadID = Number(useParams().threadID); //params.threadID!: the ! asserts that the value is non-null
 
-    const { isLoggedIn, successAlert, setSuccessAlert } = React.useContext(RootContext);
+    const { successAlert, setSuccessAlert } = React.useContext(RootContext);
     const [triggerRender, setTriggerRender] = React.useState<boolean>(false);
     const [threadData, setThreadData] = React.useState<ThreadType>({id: 0, username: "Error", title: "Error", content: "Error", created_at: new Date(), edited: false });
     const [replyValue, setReplyValue] = React.useState<string>("");
@@ -55,7 +56,7 @@ export default function ThreadPage() {
                 setReplies(allReplies);
                 setRepliesError({status: false, message: ""});
                 setReplyCount(allReplies.length);
-                if (isLoggedIn) {
+                if (checkLoggedIn()) {
                     const user: string = JSON.parse(localStorage.getItem("user")!).username;
                     if (user === threadData.username) {
                         setIsUser(true);
@@ -66,7 +67,7 @@ export default function ThreadPage() {
             }
         };
         fetchReplies();
-    }, [threadID, replySubmit, isLoggedIn, threadData.username, triggerRender]);
+    }, [threadID, replySubmit, threadData.username, triggerRender]);
 
     const backToMain = () => {
         navigate("/");
@@ -88,10 +89,19 @@ export default function ThreadPage() {
 
     // handles opening of edit/delete modals
     const handleOpenDeleteModal = () => {
-        setOpenDeleteThreadModal(true);
+        if (checkLoggedIn()) {
+            setOpenDeleteThreadModal(true);
+        } else {
+            setErrorAlert({status: true, message: "You are not logged in"});
+        }
     }
     const handleOpenEditModal = () => {
-        setOpenEditThreadModal(true);
+        if (checkLoggedIn()) {
+            setOpenEditThreadModal(true);
+        } else {
+            setErrorAlert({status: true, message: "You are not logged in"});
+        }
+        
     }
 
     // updates the state of reply value everytime there is a change in input
@@ -102,7 +112,7 @@ export default function ThreadPage() {
     // log the reply to the backend, then re render the page to display the new 
     const submitReply = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (!isLoggedIn) {
+        if (!checkLoggedIn()) {
             setErrorAlert({status: true, message: "You are not logged in!"});
         } else {
             if (replyValue.length === 0) {

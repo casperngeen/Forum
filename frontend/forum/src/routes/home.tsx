@@ -8,15 +8,14 @@ import { Box, Button, Container, Stack, Typography } from '@mui/material';
 import ThreadType from '../types/thread';
 import Thread from '../components/thread';
 import { useNavigate } from 'react-router-dom';
-import { RootContext } from '../contexts/rootContext';
 import AlertType from '../types/alertType';
 import AlertErrorSnackBar from '../components/alertErrorSnackBar';
+import { checkLoggedIn } from '../utils/checkLoggedIn';
 
 
 export default function Home() {
     const [threads, setThreads] = React.useState<ThreadType[]>([]);
     const [threadCount, setThreadCount] = React.useState<number>(0);
-    const { isLoggedIn } = React.useContext(RootContext);
     const [error, setError] = React.useState<string>("");
     const [errorAlert, setErrorAlert] = React.useState<AlertType>({status: false, message: ""});
     const navigate = useNavigate();
@@ -37,7 +36,7 @@ export default function Home() {
 
     //redirect user to the correct page based on log in status
     const createNewThread = () => {
-        if (isLoggedIn) {
+        if (checkLoggedIn()) {
             navigate("/createThread");
         } else {
             setErrorAlert({status: true, message: "You are not logged in!"});

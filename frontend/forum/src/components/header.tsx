@@ -5,14 +5,24 @@ import { RootContext } from "../contexts/rootContext";
 import { logout } from "../network/authApi";
 import { Person } from "@mui/icons-material";
 import { modalStyle } from "../utils/modalStyle";
+import { checkLoggedIn } from "../utils/checkLoggedIn";
 
 export default function Header() {
     const navigate = useNavigate();
-    const { isLoggedIn, setIsLoggedIn, setSuccessAlert } = React.useContext(RootContext);
+    const { setSuccessAlert } = React.useContext(RootContext);
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const menuOpen = Boolean(anchorEl);
 
     const [logoutOpen, setLogoutOpen] = React.useState<boolean>(false);
+
+    // sets all cookies to an expiration date that has already passed
+    const clearAllCookies = () => {
+        const cookies: string[] = document.cookie.split("; ");
+        for (const cookie of cookies) {
+            const [name] = cookie.split("=");
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+        }
+    };
 
     const handleLogin = () => {
         navigate("/login");
@@ -36,8 +46,7 @@ export default function Header() {
     }
     const handleLogout = async () => {
         await logout();
-        localStorage.removeItem("user");
-        setIsLoggedIn(false);
+        clearAllCookies();
         setLogoutOpen(false);
         setAnchorEl(null);
         setSuccessAlert({status: true, message: "Logout successful"});
@@ -52,7 +61,7 @@ export default function Header() {
                 </Grid>
                 <Grid item>
                     {
-                        isLoggedIn
+                        checkLoggedIn()
                         ? (
                             <div>
                                 <Button

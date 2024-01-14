@@ -5,29 +5,32 @@ import { RootContext } from '../contexts/rootContext';
 import { Edit, Delete } from '@mui/icons-material';
 import { deleteReply, editReply } from '../network/replyApi';
 import { ReplyContext } from '../contexts/replyContext';
-
+import { checkLoggedIn } from '../utils/checkLoggedIn';
 
 // renders a single reply (be it nested or not)
 export default function Reply({ reply, threadID }: {reply: ReplyType, threadID: number}) {
   const {id, username, content, created_at, edited} = reply;
   const [isUser, setIsUser] = React.useState<boolean>(false);
-  const { isLoggedIn, setSuccessAlert } = React.useContext(RootContext);
+  const { setSuccessAlert } = React.useContext(RootContext);
   const { setErrorAlert, setTriggerRender } = React.useContext(ReplyContext);
   const [openEditReplyModal, setOpenEditReplyModal] = React.useState<boolean>(false);
   const [openDeleteReplyModal, setOpenDeleteReplyModal] = React.useState<boolean>(false);
   const [replyValue, setReplyValue] = React.useState<string>(content);
 
   React.useEffect(() => {
-    if (isLoggedIn) {
-      const user: string = JSON.parse(localStorage.getItem("user")!).username;
-      if (user === username) {
-          setIsUser(true);
-      }
+    if (checkLoggedIn() === username) {
+        setIsUser(true);
+    } else {
+      setIsUser(false);
     }
-  }, [isLoggedIn, username, setIsUser, isUser])
+  }, [username, setIsUser, isUser])
 
   const handleOpenDeleteModal = () => {
-    setOpenDeleteReplyModal(true);
+    if (checkLoggedIn()) {
+      setOpenDeleteReplyModal(true);
+    } else {
+      setErrorAlert({status: true, message: "You are not logged in"});
+    }
   }
 
   const handleCloseDeleteModal = () => {
@@ -47,7 +50,11 @@ export default function Reply({ reply, threadID }: {reply: ReplyType, threadID: 
   }
 
   const handleOpenEditModal = () => {
-    setOpenEditReplyModal(true);
+    if (checkLoggedIn()) {
+      setOpenEditReplyModal(true);
+    } else {
+      setErrorAlert({status: true, message: "You are not logged in"});
+    }
   }
 
   const handleCloseEditModal = () => {

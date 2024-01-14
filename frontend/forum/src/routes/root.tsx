@@ -13,8 +13,7 @@ import AlertType from '../types/alertType';
 
 // main framework for the website: contains a nav bar, and a componenet to render the main content (threads or list of threads)
 export default function Root() {
-  const [isLoggedIn, setIsLoggedIn] = React.useState<boolean>(false);
-  const [ successAlert, setSuccessAlert ] = React.useState<AlertType>({status: false, message: ""});
+  const [successAlert, setSuccessAlert] = React.useState<AlertType>({status: false, message: ""});
 
   const handleClose = () => {
     setSuccessAlert(prevState => ({
@@ -26,7 +25,7 @@ export default function Root() {
   return (
     <ThemeProvider theme={theme} >
       <Container sx={{margin:"auto", width: "50rem"}}>
-          <RootContext.Provider value={{isLoggedIn, setIsLoggedIn, successAlert, setSuccessAlert}}>
+          <RootContext.Provider value={{successAlert, setSuccessAlert}}>
               <Header />
               <Outlet />
             <AlertSuccessSnackBar state={successAlert} onClose={handleClose} />

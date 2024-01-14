@@ -15,8 +15,8 @@ import { CssBaseline } from '@mui/material';
 import { ArrowBack } from '@mui/icons-material';
 import AlertErrorSnackBar from '../components/alertErrorSnackBar';
 import Copyright from '../components/copyright';
+import { checkLoggedIn } from '../utils/checkLoggedIn';
 
-// TODO change the handleSubmit to verifying with database (fetch request) -> need a specific error message page also for wrong password or username
 export default function Login() {
     interface ErrorType {
         status: boolean,
@@ -24,7 +24,7 @@ export default function Login() {
     }
 
     const navigate = useNavigate();
-    const { setSuccessAlert, isLoggedIn, setIsLoggedIn } = React.useContext(RootContext);
+    const { setSuccessAlert } = React.useContext(RootContext);
     
     const [ error, setError ] = React.useState<ErrorType>({status: false, message: ""});
 
@@ -36,13 +36,14 @@ export default function Login() {
         const data = new FormData(event.currentTarget); 
         const username: string = data.get("username") as string;
         const password: string = data.get("password") as string;
-        if (isLoggedIn) {
+        if (checkLoggedIn()) {
             setError({status: true, message: "You are already logged in"})
         } else {
             try {
                 const userData = await login({username: username, password: password});
-                localStorage.setItem("user", JSON.stringify(userData));
-                setIsLoggedIn(true);
+                // localStorage.setItem("user", JSON.stringify(userData)); (localStorage does not share information across tabs while cookies do)
+                document.cookie = `userID=${userData.id.toString}`;
+                document.cookie = `username=${userData.username}`;
                 setSuccessAlert({status: true, message: "Login successful"});
                 navigate("/");
             } catch (error) {
