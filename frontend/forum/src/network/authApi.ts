@@ -16,7 +16,6 @@ interface Credentials {
     password: string,
 }
 
-// to edit
 export async function register(credentials: Credentials) {
     const response = await fetch(URL + "register",
         {
